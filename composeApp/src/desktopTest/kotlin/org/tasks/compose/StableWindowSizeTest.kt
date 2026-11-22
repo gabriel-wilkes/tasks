@@ -86,6 +86,25 @@ class StableWindowSizeTest {
     }
 
     @Test
+    fun uiScaleShrinksTheReportedWindowDpSize() {
+        assertEquals(DpSize(1024.dp, 640.dp), scaledContainerDp(DpSize(1280.dp, 800.dp), 1.25f))
+    }
+
+    @Test
+    fun uiScaleLeavesAnUnscaledWindowAlone() {
+        val size = DpSize(1280.dp, 800.dp)
+
+        assertEquals(size, scaledContainerDp(size, 1f))
+    }
+
+    @Test
+    fun uiScaleDoesNotInventASizeForACollapsedWindow() {
+        val collapsed = DpSize((-16).dp, (-39).dp)
+
+        assertEquals(collapsed, scaledContainerDp(collapsed, 1.25f))
+    }
+
+    @Test
     fun neverReportsANegativeSize() {
         val beforeAnyLayout = LastValidWindowSize().stabilize(collapsed, collapsedDp)
         val afterLayout = LastValidWindowSize()

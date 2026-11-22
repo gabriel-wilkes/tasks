@@ -49,4 +49,6 @@ data class PlatformConfiguration(
     val supportsAutoNightTheme: Boolean = false,
     val supportsLanguageSelection: Boolean = false,
     val localeChangeRequiresRestart: Boolean = false,
+    val supportsUiScale: Boolean = false,
+    val uiScaleEnvironmentOverride: Float? = null,
 )

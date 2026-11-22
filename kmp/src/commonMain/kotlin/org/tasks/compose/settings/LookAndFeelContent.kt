@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.tasks.kmp.languageDisplayName
 import org.tasks.locale.SUPPORTED_LANGUAGE_TAGS
+import org.tasks.preferences.UiScale
 import org.tasks.viewmodel.LookAndFeelViewModel
 import tasks.kmp.generated.resources.Res
 import tasks.kmp.generated.resources.cancel
@@ -45,6 +46,8 @@ import tasks.kmp.generated.resources.restart_now
 import tasks.kmp.generated.resources.restart_required
 import tasks.kmp.generated.resources.theme
 import tasks.kmp.generated.resources.theme_system_default
+import tasks.kmp.generated.resources.ui_scale
+import tasks.kmp.generated.resources.ui_scale_environment
 
 @Composable
 fun LookAndFeelContent(
@@ -69,6 +72,17 @@ fun LookAndFeelContent(
 
     var showThemeDialog by rememberSaveable { mutableStateOf(false) }
     var showLanguageDialog by rememberSaveable { mutableStateOf(false) }
+    var showUiScaleDialog by rememberSaveable { mutableStateOf(false) }
+    val environmentScale = viewModel.uiScaleEnvironmentOverride
+    val environmentSummary = stringResource(
+        Res.string.ui_scale_environment,
+        UiScale.percentLabel(environmentScale ?: viewModel.uiScaleFactor),
+    )
+    val uiScaleSummary = if (viewModel.uiScaleUsesEnvironment && environmentScale != null) {
+        environmentSummary
+    } else {
+        UiScale.percentLabel(viewModel.uiScaleFactor)
+    }
 
     LookAndFeelScreen(
         themeName = baseThemeName(viewModel.themeIndex),
@@ -93,6 +107,9 @@ fun LookAndFeelContent(
         onDefaultFilter = onDefaultFilter,
         onLanguage = { showLanguageDialog = true },
         onTranslations = onTranslations,
+        showUiScale = viewModel.showUiScale,
+        uiScaleSummary = uiScaleSummary,
+        onUiScale = { showUiScaleDialog = true },
     )
 
     if (showThemeDialog) {
@@ -104,6 +121,17 @@ fun LookAndFeelContent(
                 showThemeDialog = false
             },
             onDismiss = { showThemeDialog = false },
+        )
+    }
+
+    if (showUiScaleDialog) {
+        UiScaleDialog(
+            selectedPercent = UiScale.matchingPreset(viewModel.uiScaleFactor),
+            onSelect = {
+                viewModel.setUiScalePercent(it)
+                showUiScaleDialog = false
+            },
+            onDismiss = { showUiScaleDialog = false },
         )
     }
 
@@ -145,6 +173,26 @@ private fun ThemeDialog(
                 label = baseThemeName(index),
                 selected = selectedIndex == index,
                 onClick = { onSelect(index) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun UiScaleDialog(
+    selectedPercent: Int?,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ChoiceDialog(
+        title = stringResource(Res.string.ui_scale),
+        onDismiss = onDismiss,
+    ) {
+        UiScale.presets.forEach { percent ->
+            ChoiceRow(
+                label = UiScale.percentLabel(UiScale.factorForPercent(percent)),
+                selected = selectedPercent == percent,
+                onClick = { onSelect(percent) },
             )
         }
     }

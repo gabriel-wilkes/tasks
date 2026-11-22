@@ -183,6 +183,7 @@ class TasksPreferences(private val dataStore: DataStore<Preferences>) {
         val placesHideUnused = booleanPreferencesKey("drawer_places_hide_unused")
         val theme = intPreferencesKey("theme")
         val themeColor = intPreferencesKey("theme_color")
+        val uiScalePercent = intPreferencesKey("ui_scale_percent")
         val dynamicColor = booleanPreferencesKey("dynamic_color")
         val markdown = booleanPreferencesKey("markdown")
         val openLastViewedList = booleanPreferencesKey("open_last_viewed_list")
