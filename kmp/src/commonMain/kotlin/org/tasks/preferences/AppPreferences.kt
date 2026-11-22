@@ -90,6 +90,7 @@ data class LookAndFeelSettings(
     val openLastViewedList: Boolean = true,
     val defaultOpenFilter: String? = null,
     val languageTag: String? = null,
+    val uiScalePercent: Int = UiScale.UNSET,
 )
 
 data class TaskDefaultSettings(
@@ -194,6 +195,7 @@ interface AppPreferences {
     suspend fun setOpenLastViewedList(value: Boolean)
     suspend fun setDefaultOpenFilter(value: String?)
     suspend fun setLanguageTag(value: String?)
+    suspend fun setUiScalePercent(value: Int) {}
     suspend fun notificationSettings(): NotificationSettings
     suspend fun setNotificationsEnabled(value: Boolean)
     suspend fun setPersistentNotifications(value: Boolean)

@@ -69,6 +69,7 @@ import org.tasks.notifications.NucleusWindowsNotifications
 import org.tasks.notifications.notificationSessionToken
 import org.tasks.opentasks.OpenTasksSyncer
 import org.tasks.preferences.TasksPreferences
+import org.tasks.preferences.UiScale
 import org.tasks.security.DesktopKeyProvider
 import org.tasks.security.KeyStoreEncryption
 import org.tasks.service.DesktopCleanup
@@ -193,6 +194,8 @@ actual fun platformModule(): Module = module {
             supportsLanguageSelection = true,
             localeChangeRequiresRestart = true,
             supportsMcpServer = true,
+            supportsUiScale = true,
+            uiScaleEnvironmentOverride = UiScale.parseFactor(System.getenv(UiScale.ENV_VAR)),
         )
     }
     single<org.tasks.analytics.Analytics> { get<Reporting>() }

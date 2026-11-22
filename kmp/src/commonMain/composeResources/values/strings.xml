@@ -176,6 +176,8 @@
     <string name="migrating_tasks">Migrating tasks</string>
     <string name="migrate_count">Move %1$s to Tasks.org</string>
     <string name="preferences_look_and_feel">Look and feel</string>
+    <string name="ui_scale">UI scale</string>
+    <string name="ui_scale_environment">Using %1$s from TASKS_UI_SCALE</string>
     <string name="notifications">Notifications</string>
     <string name="task_defaults">Task defaults</string>
     <string name="task_list_options">Task list options</string>

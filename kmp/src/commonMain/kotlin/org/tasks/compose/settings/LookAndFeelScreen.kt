@@ -44,6 +44,7 @@ import tasks.kmp.generated.resources.theme_light
 import tasks.kmp.generated.resources.theme_system_default
 import tasks.kmp.generated.resources.theme_wallpaper
 import tasks.kmp.generated.resources.translations
+import tasks.kmp.generated.resources.ui_scale
 import tasks.kmp.generated.resources.widget_open_list
 
 @Composable
@@ -70,6 +71,9 @@ fun LookAndFeelScreen(
     onDefaultFilter: () -> Unit,
     onLanguage: () -> Unit,
     onTranslations: () -> Unit,
+    showUiScale: Boolean = false,
+    uiScaleSummary: String = "",
+    onUiScale: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -78,6 +82,17 @@ fun LookAndFeelScreen(
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.height(SettingsContentPadding))
+
+        if (showUiScale) {
+            SettingsItemCard(modifier = Modifier.padding(horizontal = SettingsContentPadding)) {
+                PreferenceRow(
+                    title = stringResource(Res.string.ui_scale),
+                    summary = uiScaleSummary,
+                    onClick = onUiScale,
+                )
+            }
+            Spacer(modifier = Modifier.height(SettingsContentPadding))
+        }
 
         Column(
             modifier = Modifier.padding(horizontal = SettingsContentPadding),

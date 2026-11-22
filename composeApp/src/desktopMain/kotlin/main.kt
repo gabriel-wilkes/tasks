@@ -1,5 +1,6 @@
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,7 @@ import org.tasks.analytics.Reporting
 import org.tasks.App
 import org.tasks.auth.TasksServerEnvironment
 import org.tasks.broadcast.ComposeRefreshBroadcaster
+import org.tasks.compose.ProvideUiScale
 import org.tasks.compose.StableWindowSize
 import org.tasks.jobs.BackgroundWork
 import org.tasks.jobs.RefreshScheduler
@@ -46,6 +48,7 @@ import org.tasks.PlatformConfiguration
 import org.tasks.TaskRequests
 import org.tasks.preferences.AppPreferences
 import org.tasks.preferences.TasksPreferences
+import org.tasks.preferences.UiScale
 import org.tasks.preferences.recordInstallIfNeeded
 import org.tasks.service.Upgrader
 import org.tasks.viewmodel.PendingTaskSaves
@@ -76,6 +79,7 @@ import java.net.Socket
 import java.nio.channels.FileChannel
 import org.tasks.extensions.openInBrowser
 import org.tasks.extensions.step
+import kotlin.math.roundToInt
 
 private const val TAG = "main"
 
@@ -159,11 +163,17 @@ fun main() {
         modules(commonModule, platformModule())
     }
     val koin = KoinPlatform.getKoin()
+    var initialUiScalePercent = UiScale.UNSET
     runBlocking {
         val versionCode = koin.get<PlatformConfiguration>().versionCode
         koin.get<AppPreferences>().recordInstallIfNeeded(versionCode)
         koin.get<Upgrader>().upgrade(versionCode)
-        koin.get<TasksPreferences>()
+        val tasksPreferences = koin.get<TasksPreferences>()
+        initialUiScalePercent = tasksPreferences.get(
+            TasksPreferences.uiScalePercent,
+            UiScale.UNSET,
+        )
+        tasksPreferences
             .get(TasksPreferences.languageTag, "")
             .takeIf { it.isNotBlank() }
             ?.let { runCatching { Locale.forLanguageTag(it) }.getOrNull() }
@@ -309,11 +319,21 @@ fun main() {
             // be lost silently - and a save slow enough to notice would read as a hung window.
             visible = windowReady && !closing,
         ) {
-            window.minimumSize = Dimension(MIN_WIDTH.value.toInt(), MIN_HEIGHT.value.toInt())
+            val platformConfig = koinInject<PlatformConfiguration>()
+            val savedUiScale by remember {
+                preferences.flow(TasksPreferences.uiScalePercent, UiScale.UNSET)
+            }.collectAsState(initialUiScalePercent)
+            val uiScale = UiScale.resolve(
+                savedUiScale,
+                platformConfig.uiScaleEnvironmentOverride,
+            )
+            window.minimumSize = Dimension(
+                (MIN_WIDTH.value * uiScale).roundToInt(),
+                (MIN_HEIGHT.value * uiScale).roundToInt(),
+            )
             val reporting = koinInject<Reporting>()
             val sseClient = koinInject<SseClient>()
             val backgroundWork = koinInject<BackgroundWork>()
-            val platformConfig = koinInject<PlatformConfiguration>()
             val notificationScheduler = koinInject<NotificationScheduler>()
             val refreshScheduler = koinInject<RefreshScheduler>()
             val notifier = koinInject<DesktopNotifier>()
@@ -391,24 +411,26 @@ fun main() {
                 }
             }
             val userDecisionRegistry = koinInject<DesktopUserDecisionRegistry>()
-            TrustCertificateDialog(userDecisionRegistry)
             val serverEnv = koinInject<TasksServerEnvironment>()
             val scope = rememberCoroutineScope()
             var currentEnv by remember { mutableStateOf(serverEnv.currentEnvironment) }
-            StableWindowSize {
-                App(
-                    openUrl = { url ->
-                        openInBrowser(url)
-                    },
-                    environments = serverEnv.environments,
-                    currentEnvironment = currentEnv,
-                    onSelectEnvironment = { env ->
-                        scope.launch {
-                            serverEnv.setEnvironment(env)
-                            currentEnv = env
-                        }
-                    },
-                )
+            ProvideUiScale(uiScale) {
+                TrustCertificateDialog(userDecisionRegistry)
+                StableWindowSize {
+                    App(
+                        openUrl = { url ->
+                            openInBrowser(url)
+                        },
+                        environments = serverEnv.environments,
+                        currentEnvironment = currentEnv,
+                        onSelectEnvironment = { env ->
+                            scope.launch {
+                                serverEnv.setEnvironment(env)
+                                currentEnv = env
+                            }
+                        },
+                    )
+                }
             }
         }
     }

@@ -18,6 +18,7 @@ import org.tasks.filters.FilterPreferenceCodec
 import org.tasks.filters.MyTasksFilter
 import org.tasks.preferences.AppPreferences
 import org.tasks.preferences.LookAndFeelSettings
+import org.tasks.preferences.UiScale
 import org.tasks.themes.BaseTheme
 
 open class LookAndFeelViewModel(
@@ -60,6 +61,12 @@ open class LookAndFeelViewModel(
 
     val showMarkdown: Boolean get() = platformConfiguration.supportsMarkdownToggle
     val showLanguage: Boolean get() = platformConfiguration.supportsLanguageSelection
+    val showUiScale: Boolean get() = platformConfiguration.supportsUiScale
+    val uiScaleEnvironmentOverride: Float? get() = platformConfiguration.uiScaleEnvironmentOverride
+    val uiScaleFactor: Float
+        get() = UiScale.resolve(settings.uiScalePercent, uiScaleEnvironmentOverride)
+    val uiScaleUsesEnvironment: Boolean
+        get() = !UiScale.isPreset(settings.uiScalePercent) && uiScaleEnvironmentOverride != null
 
     open val themeIndex: Int get() = settings.theme
     open val themeColor: Int get() = settings.themeColor
@@ -136,6 +143,12 @@ open class LookAndFeelViewModel(
         settings = settings.copy(defaultOpenFilter = encoded)
         defaultFilter = filter
         persist { appPreferences.setDefaultOpenFilter(encoded) }
+    }
+
+    fun setUiScalePercent(percent: Int) {
+        if (!UiScale.isPreset(percent)) return
+        settings = settings.copy(uiScalePercent = percent)
+        persist { appPreferences.setUiScalePercent(percent) }
     }
 
     open fun setLanguage(languageTag: String?) {

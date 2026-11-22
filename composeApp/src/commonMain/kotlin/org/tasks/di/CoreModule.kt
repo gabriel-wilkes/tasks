@@ -318,6 +318,8 @@ val coreModule: Module = module {
                 tasksPreferences.set(TasksPreferences.defaultOpenFilter, value.orEmpty())
             override suspend fun setLanguageTag(value: String?) =
                 tasksPreferences.set(TasksPreferences.languageTag, value.orEmpty())
+            override suspend fun setUiScalePercent(value: Int) =
+                tasksPreferences.set(TasksPreferences.uiScalePercent, value)
             override suspend fun notificationSettings() =
                 tasksPreferences.snapshot().notificationSettings()
             override suspend fun setNotificationsEnabled(value: Boolean) =
@@ -797,6 +799,7 @@ internal fun PreferencesSnapshot.lookAndFeelSettings() = LookAndFeelSettings(
     ),
     defaultOpenFilter = get(TasksPreferences.defaultOpenFilter, "").takeIf { it.isNotBlank() },
     languageTag = get(TasksPreferences.languageTag, "").takeIf { it.isNotBlank() },
+    uiScalePercent = get(TasksPreferences.uiScalePercent, lookAndFeelDefaults.uiScalePercent),
 )
 
 internal fun PreferencesSnapshot.drawerSettings() = DrawerSettings(
